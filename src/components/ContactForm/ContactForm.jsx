@@ -1,42 +1,34 @@
-import { addNumber } from '../../redux/contactsSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
 import css from './ContactForm.module.css';
 import { nanoid } from '@reduxjs/toolkit';
+import { addContacts } from '../../redux/operations';
+import { selectContacts } from '../../redux/selectors';
 
 const usernameInputId = nanoid();
 const usertelInputId = nanoid();
 
 const ContactForm = () => {
-  const contacts = useSelector(state => state.contacts);
+  const contacts = useSelector(selectContacts);
   const dispatch = useDispatch();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm();
-
-  const handleFormSubmit = data => {
-    const { name, number } = data;
-    if (name && number) {
-      const numberAlreadyExist =
-        contacts && contacts.some(contact => contact.name === name);
-
-      if (numberAlreadyExist) {
-        alert(`${name} is already exist!`);
-        reset();
-      } else {
-        dispatch(addNumber(data.name, data.number));
-        reset();
-      }
+  const handleFormSubmit = event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const name = form.elements.name.value;
+    const phone = form.elements.number.value;
+    const contactExist = contacts.some(contact => contact.name === name);
+    if (contactExist) {
+      alert('Contact already exist!');
+      form.reset();
+    } else {
+      dispatch(addContacts({ name, phone }));
+      form.reset();
     }
   };
 
   return (
     <>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <form onSubmit={handleFormSubmit}>
         <div className={css.contact_container}>
           <label htmlFor={usernameInputId} className={css.username_label}>
             Name
@@ -44,22 +36,13 @@ const ContactForm = () => {
           <input
             type="text"
             name="name"
-            {...register('name', {
-              required: 'Name is required!',
-              pattern: {
-                value:
-                  /^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$/,
-                message:
-                  /Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan/,
-              },
-            })}
             id={usernameInputId}
             className={css.username_input}
             placeholder="Please write username"
+            pattern="[a-zA-Z \-']{2,30}"
+            title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+            required
           />
-          {errors.name?.message && (
-            <p className={css.errors}>{errors.name.message}</p>
-          )}
 
           <label htmlFor={usertelInputId} className={css.usertel_label}>
             Number
@@ -67,22 +50,14 @@ const ContactForm = () => {
           <input
             type="tel"
             name="number"
-            {...register('number', {
-              required: 'Number is required!',
-              pattern: {
-                value:
-                  /\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}/,
-                message:
-                  /Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"/,
-              },
-            })}
             id={usertelInputId}
             className={css.usertel_input}
             placeholder="Please write number"
+            pattern="^\+?[0-9 \-\(\)]{7,20}"
+            title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
+            required
           />
-          {errors.number?.message && (
-            <p className={css.errors}>{errors.number.message}</p>
-          )}
+
           <button type="submit" className={css.add_button}>
             Add contact
           </button>

@@ -1,10 +1,19 @@
 import ContactItem from 'components/ContactItem/ContactItem';
-import { useSelector } from 'react-redux';
-import { getContacts, getFilter } from '../../redux/selectors';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectContacts, selectFilterStatus } from '../../redux/selectors';
+import { fetchContacts } from '../../redux/operations';
+import { useEffect } from 'react';
 
 const ContactList = () => {
-  const contacts = useSelector(getContacts);
-  const filter = useSelector(getFilter) || '';
+  const contacts = useSelector(selectContacts);
+  const filter = useSelector(selectFilterStatus) || '';
+
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchContacts());
+    //eslint-disable-next-line
+  }, []);
+
   return (
     <ul>
       {contacts
@@ -17,7 +26,7 @@ const ContactList = () => {
               key={filteredContact.id}
               id={filteredContact.id}
               name={filteredContact.name}
-              number={filteredContact.number}
+              number={filteredContact.phone}
             />
           );
         })}
